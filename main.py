@@ -11,6 +11,8 @@ st.set_page_config(
 
 if 'initialised' not in st.session_state:
     st.session_state['initialised'] = False
+if 'generate' not in st.session_state:
+    st.session_state['generate'] = False
 
 st.markdown("""# <center> :ledger: Image Alt Text Tool</center>""", unsafe_allow_html=True)
 # Section 1 - Input website data
@@ -36,10 +38,14 @@ with st.form("form_1"):
         col2.success(analysis_info)
         st.session_state['initialised'] = True
 
+# FIXME: add generate alt text logic
+def generate_alt_text():
+    st.session_state['generate'] = True
+
 # Section 2 - Thumbnail of images without alt text
 c1, c2 = st.columns([9, 1])
 c1.subheader("Thumbnail of images without alt text")
-c2.button("Generate", disabled=not(st.session_state["initialised"]), use_container_width=True)
+c2.button("Generate", disabled=not(st.session_state["initialised"]), use_container_width=True, on_click=generate_alt_text)
 if st.session_state['initialised']:
     image_selected = image_select("Select any one", ["images/image1.jpg", "images/image2.jpg", "images/image3.jpg", "images/image4.jpg"])
     
@@ -49,20 +55,22 @@ if st.session_state['initialised']:
     image_list = csv["Image"].tolist()
     st.subheader("Alt text options")
     
-    # add alt text display logic
-    o1, o2 = st.columns([4, 6])
-    o1.markdown(f"#### Selected Image : `{output}`")
-    image_index = image_list.index(output)
-    alt1 = csv["Alt1"][image_index]
-    alt2 = csv["Alt2"][image_index]
-    o2.write("Copy any of the below alt texts")
-    o2.code(f"{alt1}", language='bash')
-    o2.code(f"{alt2}", language='bash')
-    
-    # extract & display all data
-    co1, co2, = st.columns([9, 1])
-    co2.button("Extract", use_container_width=True)
-    with st.expander("Extracted Data Info"):
-        st.dataframe(csv)
+    if st.session_state['generate']:
+        # add alt text display logic
+        o1, o2 = st.columns([4, 6])
+        o1.markdown(f"#### Selected Image : `{output}`")
+        image_index = image_list.index(output)
+        alt1 = csv["Alt1"][image_index]
+        alt2 = csv["Alt2"][image_index]
+        o2.write("Copy any of the below alt texts")
+        o2.code(f"{alt1}", language='bash')
+        o2.code(f"{alt2}", language='bash')
+        
+        # extract & display all data
+        # FIXME: add extract data logic
+        co1, co2, = st.columns([9, 1])
+        if co2.button("Extract", use_container_width=True):
+            with st.expander("Extracted Data Info", expanded=True):
+                st.dataframe(csv, hide_index=True, use_container_width=True)
 else:
     st.info("Enter any website & analyse to search for thumbnails")
