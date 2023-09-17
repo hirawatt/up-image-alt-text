@@ -28,19 +28,24 @@ with st.form("form_1"):
     no_of_images = 4
     if submitted:
         with col2.status("Analyzing website..."):
-            st.write("Searching for images...")
+            st.toast("Searching for images...")
             time.sleep(1)
             analysis_info = f"Found {no_of_images} images without thumbnail."
-            st.write(analysis_info)
+            st.toast(analysis_info)
             time.sleep(1)
-            st.write("Downloading data...")
-            time.sleep(1)
+            st.toast("Downloading data...")
+            time.sleep(.5)
+            st.toast('Success!', icon='🎉')
         col2.success(analysis_info)
         st.session_state['initialised'] = True
 
 # FIXME: add generate alt text logic
 def generate_alt_text():
     st.session_state['generate'] = True
+    
+@st.cache_data
+def convert_df(df):
+    return df.to_csv().encode('utf-8')
 
 # Section 2 - Thumbnail of images without alt text
 c1, c2 = st.columns([9, 1])
@@ -66,10 +71,16 @@ if st.session_state['initialised']:
         o2.code(f"{alt1}", language='bash')
         o2.code(f"{alt2}", language='bash')
         
+        sample_data = convert_df(csv)
         # extract & display all data
-        # FIXME: add extract data logic
         co1, co2, = st.columns([9, 1])
-        if co2.button("Extract", use_container_width=True):
+        if co2.download_button(
+                label="Extract",
+                data=sample_data,
+                file_name='sample_data.csv',
+                mime='text/csv',
+                use_container_width=True,
+            ):
             with st.expander("Extracted Data Info", expanded=True):
                 st.dataframe(csv, hide_index=True, use_container_width=True)
     else:
