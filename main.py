@@ -72,5 +72,7 @@ if st.session_state['initialised']:
         if co2.button("Extract", use_container_width=True):
             with st.expander("Extracted Data Info", expanded=True):
                 st.dataframe(csv, hide_index=True, use_container_width=True)
+    else:
+        st.info("Press Generate to get thumbnail alt text")
 else:
     st.info("Enter any website & analyse to search for thumbnails")
