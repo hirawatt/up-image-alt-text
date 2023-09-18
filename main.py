@@ -54,9 +54,11 @@ if st.button('Login'):
     authorization_url, state = flow.authorization_url(prompt='consent')
 
     # Store the state in session state
-    st.session_state.state = state
-    st.session_state.state = query_params["state"][0]
-    st.session_state.code = query_params["code"][0]
+    try:
+        st.session_state.state = query_params["state"][0]
+        st.session_state.code = query_params["code"][0]
+    except:
+        st.session_state.state = state
 
     # Redirect the user to the authorization URL
     #st.redirect(authorization_url)
