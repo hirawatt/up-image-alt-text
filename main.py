@@ -2,6 +2,8 @@ import streamlit as st
 import time
 from streamlit_image_select import image_select
 import pandas as pd
+from google.oauth2 import id_token
+from google_auth_oauthlib.flow import Flow
 
 st.set_page_config(
     page_title="Image Alt Text Tool",
@@ -13,6 +15,69 @@ if 'initialised' not in st.session_state:
     st.session_state['initialised'] = False
 if 'generate' not in st.session_state:
     st.session_state['generate'] = False
+
+query_params = st.experimental_get_query_params()
+st.write(query_params)
+st.write(st.session_state)
+
+if 'code' not in st.session_state:
+    st.session_state.code = None
+
+# Set the client ID and client secret
+client_id = st.secrets["client_id"]
+client_secret = st.secrets["client_secret"]
+
+# Define the scopes required for your app
+scopes = ['openid', 'email', 'profile']
+
+# Define the redirect URL after successful authentication
+redirect_uri = st.secrets["redirect_uri"]
+
+# Create the OAuth flow instance
+flow = Flow.from_client_secrets_file(
+    'client_secret.json',
+    scopes=scopes,
+    redirect_uri=redirect_uri
+)
+
+
+if 'credentials' not in st.session_state:
+    st.session_state.credentials = None
+
+if st.button('Login'):
+    authorization_url, state = flow.authorization_url(prompt='consent')
+
+    # Store the state in session state
+    st.session_state.state = state
+    st.session_state.state = query_params["state"][0]
+    st.session_state.code = query_params["code"][0]
+
+    # Redirect the user to the authorization URL
+    #st.redirect(authorization_url)
+    st.write(f'''
+    <a target="_self" href="{authorization_url}">
+        <button>
+            Please login via Google
+        </button>
+    </a>
+    ''',
+    unsafe_allow_html=True
+    )
+
+if 'code' in st.session_state and 'state' in st.session_state:
+    flow.fetch_token(authorization_response=st.session_state.code)
+
+    # Verify the state to prevent CSRF attacks
+    assert st.session_state.state == st.session_state.token_response.get('state')
+
+    # Store the credentials in session state
+    st.session_state.credentials = flow.credentials
+    st.write('Successfully authenticated!')
+
+if st.session_state.credentials:
+    token = st.session_state.credentials.token
+    # Use the token for API calls or other purposes
+    st.write('Access Token:', token)
 
 st.markdown("""# <center> :ledger: Image Alt Text Tool</center>""", unsafe_allow_html=True)
 # Section 1 - Input website data
@@ -29,10 +94,10 @@ with st.form("form_1"):
     if submitted:
         with col2.status("Analyzing website..."):
             st.toast("Searching for images...")
-            time.sleep(1)
+            time.sleep(.5)
             analysis_info = f"Found {no_of_images} images without thumbnail."
             st.toast(analysis_info)
-            time.sleep(1)
+            time.sleep(.5)
             st.toast("Downloading data...")
             time.sleep(.5)
             st.toast('Success!', icon='🎉')
