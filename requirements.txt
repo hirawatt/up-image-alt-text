@@ -1,5 +1,5 @@
-google_auth_oauthlib==1.1.0
+google_auth_oauthlib
 pandas
-protobuf==4.24.3
-streamlit==1.26.0
-streamlit_image_select==0.6.0
+protobuf
+streamlit
+streamlit_image_select
