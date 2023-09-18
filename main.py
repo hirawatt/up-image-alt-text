@@ -4,6 +4,7 @@ from streamlit_image_select import image_select
 import pandas as pd
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
+import os
 
 st.set_page_config(
     page_title="Image Alt Text Tool",
@@ -23,15 +24,20 @@ st.write(st.session_state)
 if 'code' not in st.session_state:
     st.session_state.code = None
 
-# Set the client ID and client secret
-client_id = st.secrets["client_id"]
-client_secret = st.secrets["client_secret"]
+try:
+    # Set the client ID and client secret
+    client_id = st.secrets["client_id"]
+    client_secret = st.secrets["client_secret"]
+
+    # Define the redirect URL after successful authentication
+    redirect_uri = st.secrets["redirect_uri"]
+except:
+    client_id = os.getenv('client_id')
+    client_secret = os.getenv('client_secret')
+    redirect_uri = os.getenv('redirect_uri')
 
 # Define the scopes required for your app
 scopes = ['openid', 'email', 'profile']
-
-# Define the redirect URL after successful authentication
-redirect_uri = st.secrets["redirect_uri"]
 
 # Create the OAuth flow instance
 flow = Flow.from_client_secrets_file(
