@@ -29,14 +29,19 @@ if 'credentials' not in st.session_state:
 if 'data' not in st.session_state:
     st.session_state.data = None
 
+m1, m2, m3 = st.columns([3, 4, 3])
+# TODO: add logout feature
+def logout():
+    return None
+
 # FIXME: remove query_params if credentials are set
 if st.session_state.credentials:
     st.experimental_set_query_params(
         login="success",
     )
 
-# TODO: add logout feature
-
+    if m3.button("Logout", use_container_width=True):
+        logout()
 
 query_params = st.experimental_get_query_params()
 #st.write(query_params)
@@ -45,19 +50,11 @@ query_params = st.experimental_get_query_params()
 # for localhost testing
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-# For deployment on render.com
-try:
-    client_id = st.secrets["client_id"]
-    client_secret = st.secrets["client_secret"]
-    redirect_uri = st.secrets["redirect_uri"]
-except:
-    client_id = os.getenv('client_id')
-    client_secret = os.getenv('client_secret')
-    redirect_uri = os.getenv('redirect_uri')
+client_id = st.secrets["client_id"]
+client_secret = st.secrets["client_secret"]
+redirect_uri = st.secrets["redirect_uri"]
 
 # Define the scopes required for your app
-#scopes = ['openid', 'email', 'profile']
-# FIXME: add above data to scopes
 scopes = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
 auth_url = "https://accounts.google.com/o/oauth2/auth"
 scope = "openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
@@ -80,12 +77,12 @@ def get_google_id_token(auth_code, client_id):
     except ValueError as e:
         st.error(f"Error retrieving ID token: {e}")
 
-if st.button("Sign in with Google"):
+if m2.button("Sign in with Google", use_container_width=True):
     # Redirect the user to the Google Sign-In page
     authorization_url, state = flow.authorization_url(prompt='consent')
     auth_endpoint = f"{auth_url}?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&scope={scope}&state={state}"
     # FIXME: add official google login button design
-    st.markdown(f'<a href="{auth_endpoint}">Click here to sign in with Google</a>', unsafe_allow_html=True)
+    m2.markdown(f'<center><a href="{auth_endpoint}">Click here to sign in with Google</a></center>', unsafe_allow_html=True)
 
 def main():
     st.markdown("""# <center> :ledger: Image Alt Text Tool</center>""", unsafe_allow_html=True)
@@ -116,7 +113,7 @@ def main():
     # FIXME: add generate alt text logic
     def generate_alt_text():
         st.session_state.generate = True
-        
+
     @st.cache_data
     def convert_df(df):
         return df.to_csv().encode('utf-8')
@@ -174,7 +171,7 @@ if runtime.exists():
             st.session_state.data = r.json()
             st.experimental_rerun()
         except:
-            st.write(f"Welcome {st.session_state.data['name']},")
+            m1.write(f"Welcome {st.session_state.data['name']},")
             main()
         #r1 = requests.get(f'https://oauth2.googleapis.com/tokeninfo?access_token={response["access_token"]}')
         #st.write(r1.json())
